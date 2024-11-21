@@ -7,14 +7,14 @@
 #define ROWS 30
 
 const int screenWidth = 1200;
-const int screenHeight = 1000;
+const int screenHeight = 900;
 
 const int cellWidth = screenWidth / COLS;
 const int cellHeight = screenHeight / ROWS;
 
-const char* youLose = "YOU LOSE!";
-const char* youWin = "YOU WIN!";
-const char* pressRToRestart = "Press 'r' to play again!";
+const char *youLose = "YOU LOSE!";
+const char *youWin = "YOU WIN!";
+const char *pressRToRestart = "Press 'r' to play again!";
 
 typedef struct Cell
 {
@@ -51,6 +51,7 @@ int CellCountMines(int, int);
 void GridInit(void);
 void GridFloodClearFrom(int, int);
 void GameInit(void);
+int CountNerbyFlags(int, int);
 
 int main()
 {
@@ -59,8 +60,8 @@ int main()
 	InitWindow(screenWidth, screenHeight, "Minesweeper");
 
 	GameInit();
-	
-	while(!WindowShouldClose())
+
+	while (!WindowShouldClose())
 	{
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 		{
@@ -68,9 +69,34 @@ int main()
 			int indexI = mPos.x / cellWidth;
 			int indexJ = mPos.y / cellHeight;
 
-			if (state == PLAYING && IndexIsValid(indexI, indexJ))
+			if (state == PLAYING && IndexIsValid(indexI, indexJ) && !grid[indexI][indexJ].revealed)
 			{
 				CellReveal(indexI, indexJ);
+			}
+			else if (
+				state == PLAYING &&
+				IndexIsValid(indexI, indexJ) &&
+				grid[indexI][indexJ].revealed &&
+				CountNerbyFlags(indexI, indexJ) == grid[indexI][indexJ].nearbyMines
+			)
+			{
+				for (int iOff = -1; iOff <= 1; iOff++)
+				{
+					for (int jOff = -1; jOff <= 1; jOff++)
+					{
+						if (iOff == 0 && jOff == 0)
+						{
+							continue;
+						}
+
+						if (!IndexIsValid(indexI + iOff, indexJ + jOff))
+						{
+							continue;
+						}
+
+						CellReveal(indexI + iOff, indexJ + jOff);
+					}
+				}
 			}
 		}
 		else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
@@ -92,43 +118,43 @@ int main()
 
 		BeginDrawing();
 
-			ClearBackground(RAYWHITE);
-			
-			for (int i = 0; i < COLS; i++)
+		ClearBackground(RAYWHITE);
+
+		for (int i = 0; i < COLS; i++)
+		{
+			for (int j = 0; j < ROWS; j++)
 			{
-				for (int j = 0; j < ROWS; j++)
-				{
-					CellDraw(grid[i][j]);
-				}
+				CellDraw(grid[i][j]);
 			}
+		}
 
-			if (state == LOSE)
-			{
-				DrawRectangle(0, 0, screenWidth,screenHeight, Fade(WHITE, 0.8f));
-				DrawText(youLose, screenWidth / 2 - MeasureText(youLose, 40) / 2, screenHeight / 2 - 10, 40, DARKGRAY);
-				DrawText(pressRToRestart, screenWidth / 2 - MeasureText(pressRToRestart, 20) / 2, screenHeight * 0.75f - 10, 20, DARKGRAY);
+		if (state == LOSE)
+		{
+			DrawRectangle(0, 0, screenWidth, screenHeight, Fade(WHITE, 0.8f));
+			DrawText(youLose, screenWidth / 2 - MeasureText(youLose, 40) / 2, screenHeight / 2 - 10, 40, DARKGRAY);
+			DrawText(pressRToRestart, screenWidth / 2 - MeasureText(pressRToRestart, 20) / 2, screenHeight * 0.75f - 10, 20, DARKGRAY);
 
-				int minutes = (int)(timeGameEnded - timeGameStarted) / 60;
-				int seconds = (int)(timeGameEnded - timeGameStarted) % 60;
-				DrawText(TextFormat("Time played: %d minutes, %d seconds.", minutes, seconds), 20, screenHeight - 40, 20, DARKGRAY);
-			}
+			int minutes = (int)(timeGameEnded - timeGameStarted) / 60;
+			int seconds = (int)(timeGameEnded - timeGameStarted) % 60;
+			DrawText(TextFormat("Time played: %d minutes, %d seconds.", minutes, seconds), 20, screenHeight - 40, 20, DARKGRAY);
+		}
 
-			if (state == WIN)
-			{
-				DrawRectangle(0, 0, screenWidth,screenHeight, Fade(WHITE, 0.8f));
-				DrawText(youWin, screenWidth / 2 - MeasureText(youWin, 40) / 2, screenHeight / 2 - 10, 40, DARKGRAY);
-				DrawText(pressRToRestart, screenWidth / 2 - MeasureText(pressRToRestart, 20) / 2, screenHeight * 0.75f - 10, 20, DARKGRAY);
+		if (state == WIN)
+		{
+			DrawRectangle(0, 0, screenWidth, screenHeight, Fade(WHITE, 0.8f));
+			DrawText(youWin, screenWidth / 2 - MeasureText(youWin, 40) / 2, screenHeight / 2 - 10, 40, DARKGRAY);
+			DrawText(pressRToRestart, screenWidth / 2 - MeasureText(pressRToRestart, 20) / 2, screenHeight * 0.75f - 10, 20, DARKGRAY);
 
-				int minutes = (int)(timeGameEnded - timeGameStarted) / 60;
-				int seconds = (int)(timeGameEnded - timeGameStarted) % 60;
-				DrawText(TextFormat("Time played: %d minutes, %d seconds.", minutes, seconds), 20, screenHeight - 40, 20, DARKGRAY);
-			}
+			int minutes = (int)(timeGameEnded - timeGameStarted) / 60;
+			int seconds = (int)(timeGameEnded - timeGameStarted) % 60;
+			DrawText(TextFormat("Time played: %d minutes, %d seconds.", minutes, seconds), 20, screenHeight - 40, 20, DARKGRAY);
+		}
 
 		EndDrawing();
 	}
-	
+
 	CloseWindow();
-	
+
 	return 0;
 }
 
@@ -237,19 +263,17 @@ void GridInit(void)
 	{
 		for (int j = 0; j < ROWS; j++)
 		{
-			grid[i][j] = (Cell)
-			{
+			grid[i][j] = (Cell){
 				.i = i,
 				.j = j,
 				.containsMine = false,
 				.revealed = false,
 				.flagged = false,
-				.nearbyMines = -1
-			};
+				.nearbyMines = -1};
 		}
 	}
 
-	minesPresent = (int)(ROWS * COLS * 0.1f);
+	minesPresent = (int)(ROWS * COLS * 0.2f);
 	int minesToPlace = minesPresent;
 	while (minesToPlace > 0)
 	{
@@ -302,4 +326,31 @@ void GameInit(void)
 	state = PLAYING;
 	tilesRevealed = 0;
 	timeGameStarted = GetTime();
+}
+
+int CountNerbyFlags(int i, int j)
+{
+	int count = 0;
+	for (int iOff = -1; iOff <= 1; iOff++)
+	{
+		for (int jOff = -1; jOff <= 1; jOff++)
+		{
+			if (iOff == 0 && jOff == 0)
+			{
+				continue;
+			}
+
+			if (!IndexIsValid(i + iOff, j + jOff))
+			{
+				continue;
+			}
+
+			if (grid[i + iOff][j + jOff].flagged)
+			{
+				count++;
+			}
+		}
+	}
+
+	return count;
 }
