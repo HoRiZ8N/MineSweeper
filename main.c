@@ -28,6 +28,8 @@ typedef struct Cell
 
 Cell grid[COLS][ROWS];
 
+Texture2D flagSprite;
+
 int tilesRevealed;
 int minesPresent;
 
@@ -59,6 +61,8 @@ int main()
 
 	InitWindow(screenWidth, screenHeight, "Minesweeper");
 
+	flagSprite = LoadTexture("resources/flag.png");
+
 	GameInit();
 
 	while (!WindowShouldClose())
@@ -77,8 +81,7 @@ int main()
 				state == PLAYING &&
 				IndexIsValid(indexI, indexJ) &&
 				grid[indexI][indexJ].revealed &&
-				CountNerbyFlags(indexI, indexJ) == grid[indexI][indexJ].nearbyMines
-			)
+				CountNerbyFlags(indexI, indexJ) == grid[indexI][indexJ].nearbyMines)
 			{
 				for (int iOff = -1; iOff <= 1; iOff++)
 				{
@@ -169,16 +172,47 @@ void CellDraw(Cell cell)
 		else
 		{
 			DrawRectangle(cell.i * cellWidth, cell.j * cellHeight, cellWidth, cellHeight, LIGHTGRAY);
-
-			if (cell.nearbyMines > 0)
+			if (cell.nearbyMines == 1)
 			{
-				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, DARKGRAY);
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, BLUE);
+			}
+			else if (cell.nearbyMines == 2)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, GREEN);
+			}
+			else if (cell.nearbyMines == 3)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, RED);
+			}
+			else if (cell.nearbyMines == 4)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, PURPLE);
+			}
+			else if (cell.nearbyMines == 5)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, DARKBLUE);
+			}
+			else if (cell.nearbyMines == 6)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, BROWN);
+			}
+			else if (cell.nearbyMines == 7)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, DARKGREEN);
+			}
+			else if (cell.nearbyMines == 8)
+			{
+				DrawText(TextFormat("%d", cell.nearbyMines), cell.i * cellWidth + 12, cell.j * cellHeight + 4, cellHeight - 8, BLACK);
 			}
 		}
 	}
 	else if (cell.flagged)
 	{
-		DrawCircle(cell.i * cellWidth + 19, cell.j * cellHeight + 16, cellHeight / 2.5f, RED);
+		Rectangle source = {0, 0, flagSprite.width, flagSprite.height};
+		Rectangle dest = {cell.i * cellWidth, cell.j * cellHeight, cellWidth, cellHeight};
+		Vector2 origin = {0, 0};
+
+		DrawTexturePro(flagSprite, source, dest, origin, 0.0f, Fade(WHITE, 0.5f));
 	}
 
 	DrawRectangleLines(cell.i * cellWidth, cell.j * cellHeight, cellWidth, cellHeight, BLACK);
