@@ -58,7 +58,7 @@ int CountNerbyFlags(int, int);
 int main()
 {
 	srand(time(0));
-
+	SetTargetFPS(60);
 	InitWindow(screenWidth, screenHeight, "Minesweeper");
 
 	flagSprite = LoadTexture("resources/flag.png");
