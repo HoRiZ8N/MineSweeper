@@ -3,11 +3,11 @@
 
 #include "raylib.h"
 
-#define COLS 30
-#define ROWS 30
+#define COLS 40
+#define ROWS 40
 
-const int screenWidth = 1200;
-const int screenHeight = 900;
+const int screenWidth = 1920;
+const int screenHeight = 1080;
 
 const int cellWidth = screenWidth / COLS;
 const int cellHeight = screenHeight / ROWS;
@@ -64,7 +64,7 @@ int main()
 	flagSprite = LoadTexture("resources/flag.png");
 
 	GameInit();
-
+	ToggleFullscreen();
 	while (!WindowShouldClose())
 	{
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
@@ -307,7 +307,7 @@ void GridInit(void)
 		}
 	}
 
-	minesPresent = (int)(ROWS * COLS * 0.2f);
+	minesPresent = (int)(ROWS * COLS * 0.15f);
 	int minesToPlace = minesPresent;
 	while (minesToPlace > 0)
 	{
