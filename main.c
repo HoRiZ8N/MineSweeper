@@ -6,8 +6,8 @@
 #define COLS 40
 #define ROWS 40
 
-const int screenWidth = 1920;
-const int screenHeight = 1080;
+const int screenWidth = 900;
+const int screenHeight = 900;
 
 const int cellWidth = screenWidth / COLS;
 const int cellHeight = screenHeight / ROWS;
@@ -64,7 +64,6 @@ int main()
 	flagSprite = LoadTexture("resources/flag.png");
 
 	GameInit();
-	ToggleFullscreen();
 	while (!WindowShouldClose())
 	{
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
